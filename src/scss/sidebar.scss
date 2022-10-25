@@ -1,0 +1,40 @@
+.left-sidebar-nav {
+    width: 300px !important;
+    min-width: 300px !important;
+    max-width: 300px !important;
+    background-color: #FFFF !important;
+    top: 64px;
+    z-index: 6;
+    font-size: 16px;
+
+    .profile-pic {
+        background: #3BCFB4;
+        font-size: 28px;
+        padding: 15px;
+        border-radius: 10px;
+    }
+
+    .ant-menu  {
+        list-style-type: none;
+        padding-left: 0px;
+
+        .ant-menu-item {
+            display: flex;
+            align-items: center;
+            height: 72px;
+            font-weight: 400;
+            padding: 16px 16px 16px 40px;
+            cursor: pointer;
+
+            img {
+                margin-right: 15px;
+            }
+        }
+    }   
+
+
+    .ant-menu-item-selected {
+        background-color: #EEFDFA;
+        color: #09947B !important;
+    }
+}

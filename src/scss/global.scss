@@ -1,0 +1,71 @@
+@import '~bootstrap-scss/bootstrap';
+@import './sidebar.scss';
+@import './table.scss';
+
+
+@font-face {
+    font-family: 'Gotham';
+    src: url( '../assets/font//Gotham-Light.otf' );
+    font-weight: 400;
+    font-style: normal;
+}
+
+@font-face {
+    font-family: 'Gotham';
+    src: url( '../assets/font//Gotham.woff' ) format( 'woff' );
+    font-weight: 500;
+    font-style: normal;
+}
+
+@font-face {
+    font-family: 'Gotham';
+    src: url( '../assets/font//Gotham.woff' ) format( 'woff' );
+    font-weight: 600;
+    font-style: normal;
+}
+
+body {
+    font-family: 'Gotham';
+    font-weight: 500;
+    color: #4B4948;
+}
+
+.text-muted {
+    color: #737373 !important;
+    font-weight: 400;
+}
+
+.cursor-pointer {
+    cursor: pointer;
+}
+
+.font-weight-bold {
+    font-weight: 500;
+}
+
+.text-xs {
+    font-size: 14px;
+}
+
+.text-sm {
+    font-size: 16px;
+}
+
+.text-md {
+    font-size: 20px;
+}
+
+.text-lg {
+    font-size: 24px;
+}
+
+.card-container {
+    padding: 30px;
+    border-radius: 10px;
+    background: #FFFF;
+
+    .ant-table-thead .ant-table-cell {
+        color: #4B4948;
+        background: #FFFF !important;
+    }
+}
