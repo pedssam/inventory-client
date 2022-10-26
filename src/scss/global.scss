@@ -1,4 +1,5 @@
 @import '~bootstrap-scss/bootstrap';
+@import '~antd/dist/antd.css';
 @import './sidebar.scss';
 @import './table.scss';
 
@@ -25,9 +26,9 @@
 }
 
 body {
-    font-family: 'Gotham';
-    font-weight: 500;
-    color: #4B4948;
+    font-family: 'Gotham' !important;
+    font-weight: 500 !important;
+    color: #4B4948 !important;
 }
 
 .text-muted {
@@ -68,4 +69,89 @@ body {
         color: #4B4948;
         background: #FFFF !important;
     }
+}
+
+.ant-drawer-footer {
+    padding: 0px !important;
+    
+    .ant-btn-primary {
+        color: white;
+        font-size: 16px;
+        background-color: #3BCFB4;
+        padding: 15px;
+        padding-bottom: 35px !important;
+        text-align: center;
+        border: 3px #3BCFB4;
+    
+        img {
+            margin-top: -5px !important;
+            margin-right: 8px !important;
+        }
+
+        &:hover {
+            color: white;
+            background-color: #1ABC9F;
+        }
+        &:disabled {
+            opacity: .6;
+        }
+    }
+
+    .ant-btn-default {
+        font-size: 18px;
+        padding: 15px;
+        padding-bottom: 28px !important;
+        text-align: center;
+        border: 1px #CCCCCC;
+
+        &:hover {
+            background-color: #F5F5F5 !important;
+        }
+       
+    }
+
+}
+
+.ant-form-item-row {
+    margin-top: -20px !important;
+    .ant-form-item-label {
+        padding-bottom: 2px;
+        label {
+            color: #4B4948 !important;
+        }
+    }
+
+    .ant-form-item-explain-error {
+        font-weight: 400;
+        font-size: 12px !important;
+    }
+}
+
+.ant-input-lg {
+    display: block !important;
+    border: 1px solid #737373 !important;
+    padding-top: 10px;
+    padding-bottom: 10px;
+    border-radius: 10px;
+    font-size: 14px !important;
+}
+
+ .ant-notification-notice-description {
+    font-weight: 400 !important;
+}
+
+.pull-right {
+    float: right;
+}
+
+.d-none {
+    display: none;
+}
+
+.action-btn-half {
+    width: 50%;
+}
+
+.action-btn-full {
+    width: 100%;
 }

@@ -2,9 +2,10 @@ import React from 'react'
 
 const Wrapper = ( { 
     // values
+    html,
     title,
     subtitle,
-    children 
+    children
 } ) => {
 
     return (
@@ -21,7 +22,7 @@ const Wrapper = ( {
                     <div className="auth-wrapper-title text-lg">
                         { title }
                     </div>
-                    <div className="pt-3 text-sm text-muted">
+                    <div className="pt-3 text-sm text-muted w-100">
                         { subtitle }
                     </div>
                 </div>

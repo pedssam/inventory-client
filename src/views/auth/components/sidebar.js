@@ -26,7 +26,7 @@ const Sidebar = () => {
             breakpoint='lg'
             theme='light'
         >
-            <div className='h-100 h-100 d-flex flex-column justify-content-between overflow-hidden-auto'>
+            <div className='d-flex flex-column justify-content-between overflow-hidden-auto'>
                 <div className='d-flex flex-column align-items-center py-5'>
                     <div>
                         <span 
