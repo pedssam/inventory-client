@@ -136,6 +136,35 @@ body {
     font-size: 14px !important;
 }
 
+.stock-input {
+    border: 1px solid #737373 !important;
+    padding-top: 10px;
+    padding-bottom: 10px;
+    border-radius: 10px;
+    font-size: 14px !important;
+
+    input {
+        border: none !important;
+        text-align: center;
+    }
+
+    svg {
+        cursor: pointer;
+    }
+}
+
+.ant-select-lg  {
+    display: block !important;
+    font-size: 14px !important;
+    font-weight: 400;
+    border-radius: 10px !important;
+}
+
+.ant-select-selector {
+    border-radius: 10px !important;
+    border: 1px solid #737373 !important;
+}
+
  .ant-notification-notice-description {
     font-weight: 400 !important;
 }
@@ -154,4 +183,14 @@ body {
 
 .action-btn-full {
     width: 100%;
+}
+
+input::-webkit-outer-spin-button,
+input::-webkit-inner-spin-button {
+  -webkit-appearance: none;
+  margin: 0;
+}
+
+input:focus {
+    outline: none;
 }
