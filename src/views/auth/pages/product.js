@@ -29,6 +29,21 @@ const Product = ({
     baseUrl
 }) => {
 
+    const replaceChar = ( char ) => {
+        let string = isInteger( char ) ? char.toString() : char
+        if( string ) {
+            if( string.includes( '₱' ) || string.includes( ',' ) ) {
+                return string.replace(/₱/g, '').replace( /,/g, '' )
+            }
+
+            return char
+        }
+
+        return 0
+    }
+
+    const { TextArea } = Input
+
     useEffect( () => {
         loadCategory()
         loadData()
@@ -50,7 +65,17 @@ const Product = ({
         exp_return: 0
     })
 
+    const [ form ] = Form.useForm()
+    const [ category, setCategory ] = useState( [] )
     const [ loading, setLoading ] = useState( true )
+    const [ hasErrors, setHasErrors ] = useState( true )
+    const [ dataSource, setDataSource ] = useState( [] )
+    const [ withReceipt, setWithReceipt ] = useState( false )
+    const [ realRecord, setRealRecord ] = useState( {} )
+    const [ stockHistory, setStockHistory ] = useState({
+        stock_history: 0,
+    })
+
     const columns = [
         {
             title: 'Pcs',
@@ -152,9 +177,6 @@ const Product = ({
         },
     ]
 
-    const [ category, setCategory ] = useState( [] )
-    const [ dataSource, setDataSource ] = useState( [] )
-
     const loadCategory = () => {
 
         axios.get( 
@@ -190,7 +212,11 @@ const Product = ({
         if( !isEmpty( record ) ) {
             setAction( { ...action , id: record.id, mode: 'put' } )
             form.setFieldsValue( record )
+            setWithReceipt( false )
+            setRealRecord( record )
             setHasErrors( false )
+            setStockHistory( { ...stockHistory, stock_history: form.getFieldValue( 'stock' ) } )
+
         } else {
             setAction( { ...action , mode: 'add' } )
             setHasErrors( true )
@@ -199,78 +225,163 @@ const Product = ({
         setDrawer( { ...drawer, open : true, title  } )
     }
 
-    const [ form ] = Form.useForm()
-    const [ hasErrors, setHasErrors ] = useState( true )
-
     const handleFormChange = () => {
         if( action.mode === 'add' ) {
             const hasErrors = !form.isFieldsTouched(true) || form.getFieldsError().some( ( { errors } ) => errors.length )
+            setHasErrors( hasErrors )
+        } else {
+            const hasErrors =  form.getFieldsError().some( ( { errors } ) => errors.length )
             setHasErrors( hasErrors )
         }
     }
 
     const setStock = ( set ) => {
+
         let value = parseInt( form.getFieldValue( 'stock' ) )
         
         if( set === 'minus' ) {
             value -= 1
-        } else if( set === 'add' ){
+        } else if( set === 'plus' ){
             value += 1
         } else {
             value = set.target.value
         }
 
-        const finalStock = ( value === 0 ) ? 1 : value
+        const finalStock = ( value <= 0 ) ? 1 : value
         form.setFieldsValue({
             stock: finalStock
         })
-
+        
         let inv = parseInt(
-            form.getFieldValue( 'investment' ).replace( /,/g, '' ) * finalStock
-        )
+            replaceChar( form.getFieldValue( 'investment' ) ) 
+        ) * finalStock
 
         let sell = parseInt(
-            form.getFieldValue( 'selling' ).replace( /,/g, '' ) * finalStock
-        )
+            replaceChar( form.getFieldValue( 'selling' ) ) 
+        ) * finalStock
+        
+        if( action.mode === 'add' ) {
+            setTotal( { total_investment: inv, exp_return: sell } )
+        } else {
+            form.setFieldsValue({
+                total_investment: inv,
+                exp_return: sell
+            })
+        }
 
-        setTotal( { total_investment: inv, exp_return: sell } )
         handleFormChange()
     }
 
     const amountChange = ( e, name ) => {
 
         let amount = parseInt(
-            e.target.value.replace( /,/g, '' ) )
-
+            replaceChar( e.target.value ) 
+        )
+        
         let totalAmount = form.getFieldValue( 'stock' ) * amount
 
         setTotal( { ...total, [ name ] : totalAmount } )
+
+        if( action.mode === 'put' ) {
+            form.setFieldsValue({
+                [ name ]: totalAmount
+            })
+        } 
+    }
+
+    const setPurchase = ( set ) => {
+
+        let stock = parseInt( form.getFieldValue( 'stock' ) )
+        let value = parseInt( form.getFieldValue( 'add_or_less_stock' ) ) || 0
+
+        if( set === 'minus' ) {
+            value -= 1
+            stock += 1
+        } else if( set === 'plus' ){
+            value += 1
+            stock -= 1
+        } else {
+            value = set.target.value
+            stock = stockHistory.stock_history - set.target.value
+        }
+
+        if( value > stockHistory.stock_history ) {
+            value = stockHistory.stock_history
+            stock = stockHistory.stock_history - value
+        }
+
+        let finalPurchase = value
+
+        if( value <= 0 ) {
+            finalPurchase = 1
+            stock = stockHistory.stock_history - 1
+        }
+
+        form.setFieldsValue({
+            add_or_less_stock: finalPurchase,
+            stock: stock,
+            purchase_amount: parseInt(
+                replaceChar( form.getFieldValue( 'selling' ) ) 
+            ) * finalPurchase
+        })
+
+        handleFormChange()
+    }
+
+    const generateRefNo = () => {
+        const characters ='ABCDEFGHIJKLMNOPQRSTUVWXYZ0123456789'
+        let result = ''
+        const charactersLength = characters.length
+        for ( let i = 0; i < 10; i++ ) {
+            result += characters.charAt( Math.floor(Math.random() * charactersLength ) )
+        }
+
+        return 'TY-' + result
     }
 
     const onFinish = ( values ) => {
-        values.investment = values.investment.replace( /,/g, '' )
-        values.selling = values.selling.replace( /,/g, '' )
 
-        const data = { ...values, ...total }
+        values.investment = replaceChar( values.investment )
+        values.selling = replaceChar( values.selling )
 
+        
         let url = `${ baseUrl }/add-product`
+        let data = { ...values, ...total }
+
         if( action.mode === 'put' ) {
             url = `${ baseUrl }/put-product/${ action.id }`
+            values.receipt_ref_num = generateRefNo()
+            values.stock_history = stockHistory.stock_history
+            data = values
         }
 
         axios.post( 
             url,
             { ...data } 
         ).then( res => {
-            openNotification(
-                `${ action.mode === 'put' ? 'Update' : 'Creation of' } Product `,
-                `Product successfully ${ action.mode === 'put' ? 'changed' : 'added' }`
-            )
-            
-            if( action.mode === 'add' ) {
-                form.resetFields()
-                setHasErrors( true )
+
+            if( action.mode === 'put' ) {
+                setDrawer( { ...drawer, open : false  } )
             }
+            form.resetFields()
+            setHasErrors( true )
+            setTotal({
+                total_investment: 0,
+                exp_return: 0
+            })
+
+            if( values.add_or_less_stock !== undefined ) {
+                openNotification(
+                    'Receipt is Ready',
+                    'Receipt successfully Generated'
+                )
+            } else {
+                openNotification(
+                    `${ action.mode === 'put' ? 'Update' : 'Creation of' } Product `,
+                    `Product successfully ${ action.mode === 'put' ? 'changed' : 'added' }`
+                )
+            }
+            
 
             loadData()
         })
@@ -298,6 +409,48 @@ const Product = ({
         })
     }
     
+    // render stock style
+    const renderStock = () => {
+        return (
+            <Form.Item
+                label='Stock'
+                name='stock'
+                className='text-center'
+                initialValue={ 1 }
+                rules={ [ 
+                    { 
+                        required: true, 
+                        message: 'Stock number is required' 
+                    } 
+                ] }
+            >
+                <Input 
+                    type='number'
+                    className='stock-input text-center'
+                    disabled={ withReceipt }
+                    suffix={
+                        <PlusOutlined 
+                            onClick={ 
+                                e => setStock( 'plus' )
+                            }
+                        />
+                    }
+                    prefix={
+                        <MinusOutlined 
+                            onClick={ 
+                                e => setStock( 'minus' )
+                            }
+                        />
+                    }
+                    onChange={ 
+                        e => setStock( e )
+                    }
+                    size='large'
+                    placeholder='# of Stock'
+                />
+            </Form.Item> 
+        )
+    }
 
     return (
         <Fragment>
@@ -404,42 +557,11 @@ const Product = ({
                                 
                             </Select>
                         </Form.Item> 
-                        <Form.Item
-                            label='Stock'
-                            name='stock'
-                            className='text-center'
-                            initialValue={ 1 }
-                            rules={ [ 
-                                { 
-                                    required: true, 
-                                    message: 'Stock number is required' 
-                                } 
-                            ] }
-                        >
-                            <Input 
-                                type='number'
-                                className='stock-input text-center'
-                                suffix={
-                                    <PlusOutlined 
-                                        onClick={ 
-                                            e => setStock( 'plus' )
-                                        }
-                                    />
-                                }
-                                prefix={
-                                    <MinusOutlined 
-                                        onClick={ 
-                                            e => setStock( 'minus' )
-                                        }
-                                    />
-                                }
-                                onChange={ 
-                                    e => setStock( e)
-                                }
-                                size='large'
-                                placeholder='# of Stock'
-                            />
-                        </Form.Item> 
+                        {/* generate stock here if its add mode */}
+                        {
+                            action.mode === 'add' && 
+                            renderStock()
+                        }
                         <Form.Item
                             label='Investment'
                             name='investment'
@@ -454,28 +576,32 @@ const Product = ({
                                 size='large'
                                 className='ant-input-lg w-100 text-end'
                                 placeholder='0.00'
+                                prefix={'₱'}
                                 thousandSeparator={ true }
                                 onChange={ e => amountChange( e, 'total_investment' ) }
                                 style={{
-                                    marginBottom: -20
+                                    marginBottom: action.mode === 'add' ? -20 : 0
                                 }}
                             />
                             
                         </Form.Item> 
-                        <label
-                            className='text-muted pb-3'
-                        >
-                            Total Investment: 
-                            <span className='font-weight-bold'>
-                                <CurrencyFormat 
-                                    value={ total.total_investment } 
-                                    displayType={ 'text' } 
-                                    thousandSeparator={ true } 
-                                    prefix={'₱'} 
-                                    disabled={ true }
-                                />
-                            </span>
-                        </label>
+                        {
+                            action.mode === 'add' && 
+                            <label
+                                className='text-muted pb-3'
+                            >
+                                Total Investment: 
+                                <span className='font-weight-bold'>
+                                    <CurrencyFormat 
+                                        value={ total.total_investment } 
+                                        displayType={ 'text' } 
+                                        thousandSeparator={ true } 
+                                        prefix={'₱'} 
+                                        disabled={ true }
+                                    />
+                                </span>
+                            </label>
+                        }
                         <Form.Item
                             label='Selling Price'
                             name='selling'
@@ -490,6 +616,7 @@ const Product = ({
                                 size='large'
                                 className='ant-input-lg w-100 text-end'
                                 placeholder='0.00'
+                                prefix={'₱'}
                                 thousandSeparator={ true }
                                 onChange={ e => amountChange( e, 'exp_return' ) }
                                 style={{
@@ -498,20 +625,205 @@ const Product = ({
                             />
                             
                         </Form.Item> 
-                        <label
-                            className='text-muted pb-2'
-                        >
-                            Expected Return: 
-                            <span className='font-weight-bold'>
-                                <CurrencyFormat 
-                                    value={ total.exp_return } 
-                                    displayType={ 'text' } 
-                                    thousandSeparator={ true } 
-                                    prefix={'₱'} 
-                                    disabled={ true }
-                                />
-                            </span>
-                        </label>
+                        {
+                            action.mode === 'add' && 
+                            <label
+                                className='text-muted pb-2'
+                            >
+                                Expected Return: 
+                                <span className='font-weight-bold'>
+                                    <CurrencyFormat 
+                                        value={ total.exp_return } 
+                                        displayType={ 'text' } 
+                                        thousandSeparator={ true } 
+                                        prefix={'₱'} 
+                                        disabled={ true }
+                                    />
+                                </span>
+                            </label>
+                        }
+                        {
+                            action.mode === 'put' &&
+                            <div className='pt-3'>
+                                <label className='text-muted'>Edit Stock</label>
+                                <div className='buttons-stock pt-2'>
+                                    <Button
+                                            type={ `${ ( !withReceipt ) ? 'primary' : 'default' }` }
+                                            className='action-btn-half btn-left'
+                                            size='large'
+                                            onClick={ e => {
+                                                setWithReceipt( !withReceipt )
+                                                form.setFieldsValue( realRecord )
+                                                setHasErrors( false )
+                                            }}
+                                        >
+                                            Manual
+                                    </Button>
+                                    <Button
+                                            type={ `${ ( withReceipt ) ? 'primary' : 'default' }` }
+                                            className='action-btn-half btn-right'
+                                            size='large'
+                                            onClick={ e => {
+                                                setWithReceipt( !withReceipt )
+                                                form.setFieldsValue( { 
+                                                    ...realRecord, 
+                                                    add_or_less_stock: '',
+
+                                                } )
+                                                setHasErrors( true )
+                                            }}
+                                        >
+                                            With Receipt
+                                    </Button>
+                                </div>
+                                <div className='stock-input-container pt-4'>
+                                    {
+                                        renderStock()
+                                    }
+                                    <Form.Item
+                                        className='pt-2'
+                                        label='Total Investment'
+                                        name='total_investment'
+                                        
+                                        rules={ [ 
+                                            { 
+                                                required: true, 
+                                                message: 'Total Investment amount is required' 
+                                            } 
+                                        ] }
+                                    >
+                                        <CurrencyFormat  
+                                            disabled={ withReceipt }
+                                            size='large'
+                                            className='ant-input-lg w-100 text-end'
+                                            placeholder='0.00'
+                                            prefix={'₱'}
+                                            thousandSeparator={ true }
+                                        />
+                                        
+                                    </Form.Item> 
+                                    <Form.Item
+                                        label='Expected Return'
+                                        name='exp_return'
+                                        rules={ [ 
+                                            { 
+                                                required: true, 
+                                                message: 'Expected Return Amount is required' 
+                                            } 
+                                        ] }
+                                    >
+                                        <CurrencyFormat  
+                                            disabled={ withReceipt }
+                                            size='large'
+                                            className='ant-input-lg w-100 text-end'
+                                            placeholder='0.00'
+                                            prefix={'₱'}
+                                            thousandSeparator={ true }
+                                        />
+                                        
+                                    </Form.Item> 
+                                    <div 
+                                        className='mb-4'
+                                        style={{
+                                            height: 1,
+                                            width: 100,
+                                            margin: 'auto' ,
+                                            background: '#cccc'
+                                        }}
+                                    />
+                                    {
+                                        withReceipt &&
+                                        <>
+                                            <Form.Item
+                                                label='# of Purchase'
+                                                name='add_or_less_stock'
+                                                className='text-center'
+                                                rules={ [ 
+                                                    { 
+                                                        required: true, 
+                                                        message: 'Number of Purchase is required' 
+                                                    } 
+                                                ] }
+                                            >
+                                                <Input 
+                                                    type='number'
+                                                    max={ form.getFieldValue( 'stock' ) }
+                                                    className='stock-input text-center'
+                                                    suffix={
+                                                        <PlusOutlined 
+                                                            onClick={ 
+                                                                e => setPurchase( 'plus' )
+                                                            }
+                                                        />
+                                                    }
+                                                    prefix={
+                                                        <MinusOutlined 
+                                                            onClick={ 
+                                                                e => setPurchase( 'minus' )
+                                                            }
+                                                        />
+                                                    }
+                                                    onChange={ 
+                                                        e => setPurchase( e )
+                                                    }
+                                                    size='large'
+                                                    placeholder='# of Purchase'
+                                                />
+                                            </Form.Item> 
+                                            <Form.Item
+                                                label='Purchase Amount'
+                                                name='purchase_amount'
+                                                rules={ [ 
+                                                    { 
+                                                        required: true, 
+                                                        message: 'Purchase Amount is required' 
+                                                    } 
+                                                ] }
+                                            >
+                                                <CurrencyFormat  
+                                                    size='large'
+                                                    className='ant-input-lg w-100 text-end'
+                                                    placeholder='0.00'
+                                                    prefix={'₱'}
+                                                    thousandSeparator={ true }
+                                                />
+                                                
+                                            </Form.Item>
+                                            <Form.Item
+                                                initialValue={'N/A'}
+                                                label='Receipt For'
+                                                name='receipt_for'
+                                                rules={ [ 
+                                                    { 
+                                                        required: true, 
+                                                        message: 'Receipt for is required' 
+                                                    } 
+                                                ] }
+                                            >
+                                                <Input 
+                                                    size='large'
+                                                    placeholder='Receipt for..'
+                                                />
+                                            </Form.Item> 
+                                        </>
+                                    }
+                                    <Form.Item
+                                        label='Description'
+                                        name='description'
+                                    >
+                                        <TextArea   
+                                            rows={ 4 }
+                                            placeholder='Description...'
+                                            style={{
+                                                border: '1px solid #737373',
+                                                borderRadius: 10
+                                            }}
+                                        />
+                                        
+                                    </Form.Item> 
+                                </div>
+                            </div>
+                        }
                     </Form>
                     
                 </div>

@@ -118,6 +118,9 @@ const Category = ({
         if( action.mode === 'add' ) {
             const hasErrors = !form.isFieldsTouched(true) || form.getFieldsError().some( ( { errors } ) => errors.length )
             setHasErrors( hasErrors )
+        } else {
+            const hasErrors = form.getFieldsError().some( ( { errors } ) => errors.length )
+            setHasErrors( hasErrors )
         }
     }
     
