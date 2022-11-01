@@ -21,8 +21,9 @@ import Close from '../../../assets/close.png'
 import Export from '../../../assets/export.png'
 import PlusOutlined from '@ant-design/icons/PlusOutlined'
 import MinusOutlined from '@ant-design/icons/MinusOutlined'
+
 // lodash
-import { isEmpty, isInteger } from 'lodash'
+import { isEmpty, isString } from 'lodash'
 
 const Product = ({
     // assigned valus
@@ -30,7 +31,7 @@ const Product = ({
 }) => {
 
     const replaceChar = ( char ) => {
-        let string = isInteger( char ) ? char.toString() : char
+        let string = !isString( char ) ? char.toString() : char
         if( string ) {
             if( string.includes( '₱' ) || string.includes( ',' ) ) {
                 return string.replace(/₱/g, '').replace( /,/g, '' )
@@ -252,13 +253,9 @@ const Product = ({
             stock: finalStock
         })
         
-        let inv = parseInt(
-            replaceChar( form.getFieldValue( 'investment' ) ) 
-        ) * finalStock
+        let inv = replaceChar( form.getFieldValue( 'investment' ) )  * finalStock
 
-        let sell = parseInt(
-            replaceChar( form.getFieldValue( 'selling' ) ) 
-        ) * finalStock
+        let sell = replaceChar( form.getFieldValue( 'selling' ) ) * finalStock
         
         if( action.mode === 'add' ) {
             setTotal( { total_investment: inv, exp_return: sell } )
@@ -274,9 +271,7 @@ const Product = ({
 
     const amountChange = ( e, name ) => {
 
-        let amount = parseInt(
-            replaceChar( e.target.value ) 
-        )
+        let amount = replaceChar( e.target.value ) 
         
         let totalAmount = form.getFieldValue( 'stock' ) * amount
 
@@ -320,9 +315,7 @@ const Product = ({
         form.setFieldsValue({
             add_or_less_stock: finalPurchase,
             stock: stock,
-            purchase_amount: parseInt(
-                replaceChar( form.getFieldValue( 'selling' ) ) 
-            ) * finalPurchase
+            purchase_amount: replaceChar( form.getFieldValue( 'selling' ) ) * finalPurchase
         })
 
         handleFormChange()

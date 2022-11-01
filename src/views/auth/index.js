@@ -6,9 +6,11 @@ import { Layout } from 'antd'
 
 // components
 import Product from './pages/product'
+import Reciept from './pages/reciept'
 import Category from './pages/category'
 import Header from './components/header'
 import Sidebar from './components/sidebar'
+
 
 // styles
 import '../../scss/global.scss'
@@ -37,6 +39,11 @@ const Auth = () => {
                                         exact
                                         path='/product'
                                         element= { <Product /> }
+                                    />
+                                    <Route
+                                        exact
+                                        path='/receipt'
+                                        element= { <Reciept /> }
                                     />
                                 </Routes>
                             </Suspense>

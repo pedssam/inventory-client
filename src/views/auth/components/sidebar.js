@@ -1,4 +1,5 @@
 import React, { useState } from 'react'
+import { useNavigate  } from 'react-router-dom'
 
 // antd
 import { Layout , Menu } from 'antd'
@@ -6,7 +7,8 @@ import { Layout , Menu } from 'antd'
 // icons
 import CategoryIcon from '../../../assets/sidebar/category.png'
 import ProductIcon from '../../../assets/sidebar/box.png'
-import { useNavigate  } from 'react-router-dom'
+import ReceiptIcon from '../../../assets/sidebar/receipt.png'
+
 
 const Sidebar = () => {
 
@@ -50,24 +52,37 @@ const Sidebar = () => {
                             <img 
                                 src={ CategoryIcon } 
                                 alt='category' 
-                                width={ 40 }
+                                width={ 32 }
                             />
                         }
                     >
                         <span className='text-sm'>Category</span>
                     </Item>
                     <Item
-                        key={ '0' }
+                        key={ '1' }
                         eventKey={ '/product' }
                         icon={ 
                             <img 
                                 src={ ProductIcon } 
                                 alt='product' 
-                                width={ 40 }
+                                width={ 32 }
                             />
                         }
                     >
                         <span className='text-sm'>Product</span>
+                    </Item>
+                    <Item
+                        key={ '2' }
+                        eventKey={ '/receipt' }
+                        icon={ 
+                            <img 
+                                src={ ReceiptIcon } 
+                                alt='receipt' 
+                                width={ 32 }
+                            />
+                        }
+                    >
+                        <span className='text-sm'>Manage Receipt</span>
                     </Item>
                 </Menu>
             </div>
