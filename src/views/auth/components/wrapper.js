@@ -11,8 +11,9 @@ const Wrapper = ( {
     return (
         <div
             style={{
-                marginLeft: 370,
                 marginTop: 120,
+                marginLeft: 370,
+                marginBottom: 70,
                 marginRight: 80,
             }}
         >

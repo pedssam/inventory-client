@@ -1,14 +1,17 @@
 import axios from 'axios'
 import moment from 'moment'
+import jsPDF from 'jspdf'
+import html2canvas from 'html2canvas'
 import { connect } from 'react-redux'
 import CurrencyFormat from 'react-currency-format'
+
 import React, { Fragment, useEffect, useState } from 'react'
 
 // component
 import Wrapper from '../components/wrapper'
 
 // antd
-import { Button, Drawer, Form, Input , notification, Popconfirm } from 'antd'
+import { Button, Drawer, Form, Input , notification, Popconfirm, Select, Checkbox, DatePicker  } from 'antd'
 import { Table } from 'ant-table-extensions'
 
 // config
@@ -23,7 +26,8 @@ import PlusOutlined from '@ant-design/icons/PlusOutlined'
 import MinusOutlined from '@ant-design/icons/MinusOutlined'
 
 // lodash
-import { isEmpty, isString } from 'lodash'
+import { filter, isEmpty, isString, map, remove, sum } from 'lodash'
+
 
 const Receipt = ({
     // assigned valus
@@ -47,6 +51,7 @@ const Receipt = ({
         loadData()
     }, [ ] )
 
+
     const [ drawer, setDrawer ] = useState({
         open: false,
         title: ''
@@ -57,7 +62,7 @@ const Receipt = ({
      } )
 
     const { TextArea } = Input
-
+    
     const [ loading, setLoading ] = useState( true )
 
     const columns = [
@@ -68,6 +73,13 @@ const Receipt = ({
                 <div 
                     onDoubleClick={ e => renderDrawer ( record.receipt_ref_num, record )  } 
                 >
+                    <Checkbox
+                        style={{
+                            paddingRight: 5
+                        }}
+                        onChange={ e => selectRow( e, record.id ) }
+                        checked={ selected.includes( record.id ) }
+                    />
                     { value }
                 </div>
             )
@@ -186,6 +198,7 @@ const Receipt = ({
     }
     
     const [ dataHistory, setDataHistory ] = useState( {} )
+    const [ limit, setLimit ] = useState( 10 )
 
     const renderDrawer = ( title, record = {} ) => {
         form.resetFields()
@@ -287,172 +300,236 @@ const Receipt = ({
         })
     }
 
+    const [ selected, setSelected ] = useState( [] )
+    const selectRow = ( e, id ) => {
+        
+        if( e.target.checked ) {
+            selected.push( id )
+        } else {
+            const index = selected.indexOf( id )
+            if ( index > -1 ) { 
+                selected.splice( index, 1 )
+            }
+        }
+
+        renderDataReceipt( e.target.checked, id )
+        setSelected( selected )
+        loadData()
+        
+    }
+
+    const [ dataReceipt, setDataReceipt ] = useState( [] )
+
+    const renderDataReceipt = ( tobeAdd, id ) => {
+
+        let result = filter( dataSource, 
+            { 'id': id }
+        )[0]
+
+        if( tobeAdd ) {
+            dataReceipt.push( result )
+        } else {
+            remove( dataReceipt, { id } )
+        }
+        setDataReceipt( dataReceipt )
+    }
+
+    const exportPdf = () => {
+
+        html2canvas( document.querySelector( '#generate-receipt' ) ).then( canvas => {
+           const imgData = canvas.toDataURL( 'image/jpeg', 1.0 )
+           const pdf = new jsPDF( 'p', 'pt', 'a4' )
+           pdf.addImage( imgData, 'JPEG',  20, 20, 555, 200 )
+           pdf.save( 'Ado Toys Receipt.pdf' ) 
+       })
+    }
+
     return (
         <Fragment>
-            <Drawer 
-                getContainer={ false }
-                closable={ false }
-                onClose={ e => setDrawer( { ...drawer, open : false } ) }
-                open={ drawer.open }
-                placement='right'
-                footer={
-                    <>
-                        <Popconfirm 
-                            placement='top' title={ 'Are you sure you want to delete?' } 
-                            onConfirm={ deleteRecord } 
-                            okText='Yes' 
-                            cancelText='Cancel'
-                        >
-                            <Button
-                                type='default'
-                                className='action-btn-half'
-                                size='large'
-                            >
-                                <img src={ Trash } alt='trash' style={{ width: 16 }} />
-                                Delete
-                            </Button>
-                        </Popconfirm>
-                        <Button
-                            className='action-btn-half'
-                            type='primary'
-                            size='large'
-                            disabled= { hasErrors }
-                            onClick={ () => form.submit() }
-                        >
-                            <img src={ Check } alt='check' />
-                            Save Now
-                        </Button>
-                    </>
-                }
-            >
-                <div className='title mt-2'>
-                    <span className='text-lg w-100'>
-                        { drawer.title }
-                        <img 
-                            onClick={ e => setDrawer( { ...drawer, open : false } ) }
-                            className='cursor-pointer pull-right'
-                            src={ Close } 
-                            style={{
-                                marginRight: 5,
-                            }}
-                            alt='close'
-                        />
-                    </span>
-                    <label className='text-muted text-xs pt-2 d-block'>Complete Receipt Details</label>
-                </div>
-                <div className='drawer-body pt-4'>
-                    <Form
-                        form={ form }
-                        labelCol={ { span: 24 } }
-                        autoComplete='off'
-                        layout='horizontal'
-                        onFinish={ onFinish }
-                        onFieldsChange={ handleFormChange }
-                    >
-                        <Form.Item
-                            initialValue={'N/A'}
-                            label='Item'
-                            name='p_name'
-                        >
-                            <Input 
-                                disabled={ true }
-                                size='large'
-                            />
-                        </Form.Item> 
-                        <Form.Item
-                            label='Pcs'
-                            name='add_or_less_stock'
-                            className='text-center'
-                            initialValue={ 1 }
-                            rules={ [ 
-                                { 
-                                    required: true, 
-                                    message: 'Number of Pcs is required' 
-                                } 
-                            ] }
-                        >
-                            <Input 
-                                type='number'
-                                className='stock-input text-center'
-                                suffix={
-                                    <PlusOutlined 
-                                        onClick={ 
-                                            e => setStock( 'plus' )
-                                        }
-                                    />
-                                }
-                                prefix={
-                                    <MinusOutlined 
-                                        onClick={ 
-                                            e => setStock( 'minus' )
-                                        }
-                                    />
-                                }
-                                onChange={ 
-                                    e => setStock( e )
-                                }
-                                size='large'
-                                placeholder='# of Pcs'
-                            />
-                        </Form.Item> 
-                        <Form.Item
-                            label='Purchase Amount'
-                            name='purchase_amount'
-                            rules={ [ 
-                                { 
-                                    required: true, 
-                                    message: 'Purchase Amount is required' 
-                                } 
-                            ] }
-                        >
-                            <CurrencyFormat  
-                                size='large'
-                                className='ant-input-lg w-100 text-end'
-                                placeholder='0.00'
-                                prefix={'₱'}
-                                thousandSeparator={ true }
-                            />
-                            
-                        </Form.Item>
-                        <Form.Item
-                            initialValue={'N/A'}
-                            label='Receipt For'
-                            name='receipt_for'
-                            rules={ [ 
-                                { 
-                                    required: true, 
-                                    message: 'Receipt for is required' 
-                                } 
-                            ] }
-                        >
-                            <Input 
-                                size='large'
-                                placeholder='Receipt for..'
-                            />
-                        </Form.Item> 
-                        <Form.Item
-                            label='Description'
-                            name='description'
-                        >
-                            <TextArea   
-                                rows={ 4 }
-                                placeholder='Description...'
-                                style={{
-                                    border: '1px solid #737373',
-                                    borderRadius: 10
-                                }}
-                            />
-                            
-                        </Form.Item> 
-                    </Form>
-                    
-                </div>
-            </Drawer>
-
             <Wrapper
                 title={ 'Receipt Management' }
                 subtitle={ 'Generate Receipt by Batch' }
             >
+                <Drawer 
+                    getContainer={ false }
+                    closable={ false }
+                    onClose={ e => setDrawer( { ...drawer, open : false } ) }
+                    open={ drawer.open }
+                    placement='right'
+                    footer={
+                        <>
+                            <Popconfirm 
+                                placement='top' title={ 'Are you sure you want to delete?' } 
+                                onConfirm={ deleteRecord } 
+                                okText='Yes' 
+                                cancelText='Cancel'
+                            >
+                                <Button
+                                    type='default'
+                                    className='action-btn-half'
+                                    size='large'
+                                >
+                                    <img src={ Trash } alt='trash' style={{ width: 16 }} />
+                                    Delete
+                                </Button>
+                            </Popconfirm>
+                            <Button
+                                className='action-btn-half'
+                                type='primary'
+                                size='large'
+                                disabled= { hasErrors }
+                                onClick={ () => form.submit() }
+                            >
+                                <img src={ Check } alt='check' />
+                                Save Now
+                            </Button>
+                        </>
+                    }
+                >
+                    <div className='title mt-2'>
+                        <span className='text-lg w-100'>
+                            { drawer.title }
+                            <img 
+                                onClick={ e => setDrawer( { ...drawer, open : false } ) }
+                                className='cursor-pointer pull-right'
+                                src={ Close } 
+                                style={{
+                                    marginRight: 5,
+                                }}
+                                alt='close'
+                            />
+                        </span>
+                        <label className='text-muted text-xs pt-2 d-block'>Complete Receipt Details</label>
+                    </div>
+                    <div className='drawer-body pt-4'>
+                        <Form
+                            form={ form }
+                            labelCol={ { span: 24 } }
+                            autoComplete='off'
+                            layout='horizontal'
+                            onFinish={ onFinish }
+                            onFieldsChange={ handleFormChange }
+                        >
+                            <Form.Item
+                                initialValue={'N/A'}
+                                label='Item'
+                                name='p_name'
+                            >
+                                <Input 
+                                    disabled={ true }
+                                    size='large'
+                                />
+                            </Form.Item> 
+                            <Form.Item
+                                label='Pcs'
+                                name='add_or_less_stock'
+                                className='text-center'
+                                initialValue={ 1 }
+                                rules={ [ 
+                                    { 
+                                        required: true, 
+                                        message: 'Number of Pcs is required' 
+                                    } 
+                                ] }
+                            >
+                                <Input 
+                                    type='number'
+                                    className='stock-input text-center'
+                                    suffix={
+                                        <PlusOutlined 
+                                            onClick={ 
+                                                e => setStock( 'plus' )
+                                            }
+                                        />
+                                    }
+                                    prefix={
+                                        <MinusOutlined 
+                                            onClick={ 
+                                                e => setStock( 'minus' )
+                                            }
+                                        />
+                                    }
+                                    onChange={ 
+                                        e => setStock( e )
+                                    }
+                                    size='large'
+                                    placeholder='# of Pcs'
+                                />
+                            </Form.Item> 
+                            <Form.Item
+                                label='Purchase Amount'
+                                name='purchase_amount'
+                                rules={ [ 
+                                    { 
+                                        required: true, 
+                                        message: 'Purchase Amount is required' 
+                                    } 
+                                ] }
+                            >
+                                <CurrencyFormat  
+                                    size='large'
+                                    className='ant-input-lg w-100 text-end'
+                                    placeholder='0.00'
+                                    prefix={'₱'}
+                                    thousandSeparator={ true }
+                                />
+                                
+                            </Form.Item>
+                            <Form.Item
+                                initialValue={'N/A'}
+                                label='Receipt For'
+                                name='receipt_for'
+                                rules={ [ 
+                                    { 
+                                        required: true, 
+                                        message: 'Receipt for is required' 
+                                    } 
+                                ] }
+                            >
+                                <Input 
+                                    size='large'
+                                    placeholder='Receipt for..'
+                                />
+                            </Form.Item> 
+                            <Form.Item
+                                label='Description'
+                                name='description'
+                            >
+                                <TextArea   
+                                    rows={ 4 }
+                                    placeholder='Description...'
+                                    style={{
+                                        border: '1px solid #737373',
+                                        borderRadius: 10
+                                    }}
+                                />
+                                
+                            </Form.Item> 
+                        </Form>
+                        
+                    </div>
+                </Drawer>
+                <div className='pb-3'>
+                    <label 
+                        className='text-muted text-xs'
+                        style={{
+                            paddingRight: 5
+                        }}
+                    >Number of Row:</label> 
+                    <Select
+                        value={10}
+                        className='table-select pb-2'
+                        onChange={ e => {
+                            setLimit( e )
+                        }}
+                    >
+                        <Select.Option key='1' value='10'>10</Select.Option>
+                        <Select.Option key='2' value='25'>25</Select.Option>
+                        <Select.Option key='3' value='50'>50</Select.Option>
+                        <Select.Option key='4' value='80'>80</Select.Option>
+                        <Select.Option key='5' value='10'>100</Select.Option>
+                    </Select>
+                </div>
                 <Table
                     className='ant-table-content'
                     loading={ loading }
@@ -468,10 +545,127 @@ const Receipt = ({
                             icon: <img src={ Export } alt = 'export' />,
                         }
                     } }
+                    sortable
                     pagination={ {
-                        pageSize: 10,
+                        pageSize: limit,
                     } }
+                    
                 />
+                <div 
+                    className='receipt-container px-5'
+                >
+                    <div 
+                        className='title'
+                    >
+                        <h6 className='font-weight-bold'>
+                            Receipt Preview
+                        </h6>
+                        <span className='text-muted text-xs'>
+                            Check item you want to add in receipt
+                        </span>
+                        <Button
+                            onClick={ exportPdf }
+                            className='pull-right'
+                        >Generate</Button>
+                    </div>
+                    <div
+                        className='receipt-body mt-3 p-4'
+                        id='generate-receipt'
+                    >
+                        <div
+                            className='company-name'
+                        >
+                            <div className='text-center'>
+                                <h2>ADO TOYS</h2>
+                            </div>
+                            <div
+                                className='form mt-5 pt-3 pb-4 row'
+                            >
+                                <div className='col-md-6'>
+                                    <Form.Item
+                                        label='Customer Name'
+                                    >
+                                        <Input 
+                                            style={{
+                                                width: '60%',
+                                                border: 'none',
+                                                borderBottom: '1px solid #cccc'
+                                            }}
+                                        />
+                                    </Form.Item>
+                                </div>
+                                <div className='col-md-3'></div>
+                                <div className='col-md-3'>
+                                    <Form.Item
+                                        label='Date'
+                                    >
+                                        <DatePicker  
+                                            defaultValue={ moment() }
+                                            format='YYYY/MM/DD'
+                                            style={{
+                                                width: '100%',
+                                                border: 'none',
+                                                borderBottom: '1px solid #cccc'
+                                            }}
+                                        />
+                                    </Form.Item>
+                                </div>
+                            </div>
+                            <div className='receipt-item'>
+                                <table className='table table-borderless'>
+                                    <thead>
+                                        <tr>
+                                            <th>Pcs</th>
+                                            <th>Item</th>
+                                            <th>Price</th>
+                                            <th>Total</th>
+                                        </tr>
+                                    </thead>
+                                    <tbody>
+                                        {
+                                            dataReceipt.map( value => (
+                                                <tr key={ value.id } >
+                                                    <td> { value.add_or_less_stock } </td>
+                                                    <td> { value.p_name } </td>
+                                                    <td> 
+                                                        <CurrencyFormat 
+                                                            value={ value.selling }
+                                                            displayType={ 'text' } 
+                                                            thousandSeparator={ true } 
+                                                            prefix={'₱'} 
+                                                        />
+                                                    </td>
+                                                    <td> 
+                                                        <CurrencyFormat 
+                                                            value={ value.purchase_amount }
+                                                            displayType={ 'text' } 
+                                                            thousandSeparator={ true } 
+                                                            prefix={'₱'} 
+                                                        />
+                                                    </td>
+                                                </tr>
+                                            ))
+                                        }
+                                    </tbody>
+                                    <tfoot>
+                                        <tr>
+                                            <td colSpan={ 3 }></td>
+                                            <td>
+                                            <CurrencyFormat 
+                                                value={ sum( map( dataReceipt, 'purchase_amount' ) ) }
+                                                displayType={ 'text' } 
+                                                thousandSeparator={ true } 
+                                                prefix={'₱'} 
+                                            />
+                                            </td>
+                                        </tr>
+                                    </tfoot>
+                                </table>
+                            </div>
+                        </div>
+                        
+                    </div>
+                </div>
             </Wrapper>
         </Fragment>
     )

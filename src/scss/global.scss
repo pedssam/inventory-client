@@ -188,12 +188,13 @@ body {
 
 input::-webkit-outer-spin-button,
 input::-webkit-inner-spin-button {
-  -webkit-appearance: none;
+  -webkit-appearance: none !important;
   margin: 0;
 }
 
 input:focus {
-    outline: none;
+    outline: none !important;
+    box-shadow: none !important;
 }
 
 input:disabled {
@@ -238,4 +239,33 @@ input:disabled {
 
 .w-100 {
     width: 100% !important;
+}
+
+
+.table-select .ant-select-selector{
+    border-radius: 0px !important;
+    border: 1px solid #cccc !important; 
+}
+
+.receipt-body{
+    border:1px solid black;
+    border-radius: 10px;
+    color: black;
+
+    .ant-form-item-label label {
+        font-size: 20px !important;
+    }
+
+    .ant-input, .ant-picker-input input {
+        font-size: 20px !important;
+    }
+
+}
+
+.table-borderless {
+    color: black;
+}
+
+.ant-drawer-inline {
+    position: fixed !important;
 }
