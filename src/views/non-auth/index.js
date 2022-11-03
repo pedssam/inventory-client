@@ -14,9 +14,10 @@ const NonAuth = () => {
             <Routes>
                 <Route
                     exact
-                    path='/login'
+                    path={ [ '/login', '/' ] }
                     element= { <Login /> }
                 />
+                
             </Routes>
         </Fragment>
     )
