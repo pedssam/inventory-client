@@ -34,10 +34,16 @@ const Sidebar = () => {
                         <span 
                             className='text-uppercase text-white display-3 profile-pic d-flex flex-column align-items-center justify-content-center'
                         >
-                            AP
+                            {
+                                window.localStorage.getItem( 'name' ).charAt( 0 )
+                            }
                         </span>
                     </div>
-                    <div className='display-4 mt-4 text-lg font-weight-bold'>Hi Arvin!</div>
+                    <div className='display-4 mt-4 text-lg font-weight-bold'>
+                        {
+                            'Hi ' + window.localStorage.getItem( 'name' ).split(' ')[0] + '!' 
+                        }
+                    </div>
                 </div>
                 <Menu
                     onClick={ onClick }

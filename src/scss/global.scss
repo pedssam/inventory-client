@@ -269,3 +269,26 @@ input:disabled {
 .ant-drawer-inline {
     position: fixed !important;
 }
+
+.login-container .ant-btn-primary {
+    color: white;
+    font-size: 16px;
+    background-color: #3BCFB4;
+    padding: 15px 60px 40px 60px;
+    text-align: center;
+    border: 3px #3BCFB4;
+    border-radius: 10px;
+
+    img {
+        margin-top: -5px !important;
+        margin-right: 8px !important;
+    }
+
+    &:hover {
+        color: white;
+        background-color: #1ABC9F;
+    }
+    &:disabled {
+        opacity: .6;
+    }
+}
