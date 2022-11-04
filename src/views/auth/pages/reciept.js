@@ -344,6 +344,24 @@ const Receipt = ({
        })
     }
 
+    const deleteSelected = () => {
+
+        if( !isEmpty( selected ) ) {
+            axios.post( 
+                `${ baseUrl }/delete-receipts`,
+                 { selected }
+            ).then( res => {
+                openNotification(
+                    `Record successfully deleted`,
+                    `Deleted Receipt`
+                )
+                
+                loadData()
+            })
+        }
+        
+    }
+
     return (
         <Fragment>
             <Wrapper
@@ -529,6 +547,16 @@ const Receipt = ({
                         <Select.Option key='4' value='80'>80</Select.Option>
                         <Select.Option key='5' value='10'>100</Select.Option>
                     </Select>
+                    <Popconfirm 
+                        placement='top' title={ 'Are you sure you want to delete?' } 
+                        onConfirm={ deleteSelected } 
+                        okText='Yes' 
+                        cancelText='Cancel'
+                    >
+                        <Button
+                            className='pull-right'
+                        >Delete Selected</Button>
+                    </Popconfirm>
                 </div>
                 <Table
                     className='ant-table-content'
