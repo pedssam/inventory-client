@@ -362,6 +362,9 @@ const Receipt = ({
         
     }
 
+    const [ receiptName, setReceiptName ] = useState( { label : 'Enter name here...' , click : false } )
+    const [ receiptDate, setReceiptDate ] = useState( { label: moment().format( 'YYYY-MM-DD' ), click : false } )
+
     return (
         <Fragment>
             <Wrapper
@@ -580,7 +583,7 @@ const Receipt = ({
                     
                 />
                 <div 
-                    className='receipt-container px-5'
+                    className='receipt-container'
                 >
                     <div 
                         className='title'
@@ -607,36 +610,70 @@ const Receipt = ({
                                 <h2>ADO TOYS</h2>
                             </div>
                             <div
-                                className='form mt-5 pt-3 pb-4 row'
+                                className='form mt-5 pt-5 pb-4 row'
                             >
-                                <div className='col-md-6'>
+                                <div className='col-md-8'>
                                     <Form.Item
                                         label='Customer Name'
                                     >
-                                        <Input 
-                                            style={{
-                                                width: '60%',
-                                                border: 'none',
-                                                borderBottom: '1px solid #cccc'
-                                            }}
-                                        />
+                                        {
+                                            receiptName.click &&
+                                            <Input 
+                                                style={{
+                                                    width: '70%',
+                                                    border: 'none',
+                                                    borderBottom: '1px solid #cccc'
+                                                }}
+                                                onBlur={ e => {
+                                                    setReceiptName( { label: e.target.value , click: false } )
+                                                }}
+                                            />
+                                        }
+                                        {
+                                            !receiptName.click && 
+                                            <span className='rec-details'
+                                                onClick={ e => {
+                                                    setReceiptName( { ...receiptName , click: true } )
+                                                } }
+                                            >
+                                                { receiptName.label }
+                                            </span>
+                                        }
                                     </Form.Item>
                                 </div>
-                                <div className='col-md-3'></div>
-                                <div className='col-md-3'>
+                                <div className='col-md-4'>
                                     <Form.Item
                                         label='Date'
                                     >
-                                        <DatePicker  
-                                            defaultValue={ moment() }
-                                            format='YYYY/MM/DD'
-                                            style={{
-                                                width: '100%',
-                                                border: 'none',
-                                                borderBottom: '1px solid #cccc'
-                                            }}
-                                        />
+                                        {
+                                            receiptDate.click && 
+                                            <DatePicker  
+                                                defaultValue={ moment() }
+                                                format='YYYY/MM/DD'
+                                                style={{
+                                                    width: '100%',
+                                                    border: 'none',
+                                                    borderBottom: '1px solid #cccc'
+                                                }}
+                                                onBlur={ e => {
+                                                    setReceiptDate( { label: e.target.value , click: false } )
+                                                }}
+                                            />
+                                        }
+
+                                        {
+                                            !receiptDate.click && 
+                                            <span className='rec-details'
+                                                onClick={ e => {
+                                                    setReceiptDate( { ...receiptDate , click: true } )
+                                                } }
+                                            >
+                                                { receiptDate.label }
+                                            </span>
+                                        }
+                                        
                                     </Form.Item>
+                                    
                                 </div>
                             </div>
                             <div className='receipt-item'>
