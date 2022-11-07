@@ -339,7 +339,12 @@ const Receipt = ({
         html2canvas( document.querySelector( '#generate-receipt' ) ).then( canvas => {
            const imgData = canvas.toDataURL( 'image/jpeg', 1.0 )
            const pdf = new jsPDF( 'p', 'pt', 'a4' )
-           pdf.addImage( imgData, 'JPEG',  20, 20, 555, 200 )
+           const imgProps= pdf.getImageProperties( imgData )
+
+           const pdfWidth = pdf.internal.pageSize.getWidth()
+           const pdfHeight = ( imgProps.height * pdfWidth ) / imgProps.width
+
+           pdf.addImage( imgData, 'JPEG',  0, 0, pdfWidth, pdfHeight )
            pdf.save( 'Ado Toys Receipt.pdf' ) 
        })
     }
