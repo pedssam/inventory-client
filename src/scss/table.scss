@@ -27,10 +27,10 @@
 
 }
 
-table td, table th {
+.table-receipt td, .table-receipt th {
   border-bottom : 1px solid black;
 }
 
-table tfoot td {
+.table-receipt tfoot td {
   border-bottom : none !important;
 }

@@ -677,7 +677,7 @@ const Receipt = ({
                                 </div>
                             </div>
                             <div className='receipt-item'>
-                                <table className='table'>
+                                <table className='table table-receipt'>
                                     <thead>
                                         <tr>
                                             <th>Pcs</th>
