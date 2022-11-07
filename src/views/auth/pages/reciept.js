@@ -612,7 +612,7 @@ const Receipt = ({
                             <div
                                 className='form mt-5 pt-5 pb-4 row'
                             >
-                                <div className='col-md-8'>
+                                <div className='col-md-9'>
                                     <Form.Item
                                         label='Customer Name'
                                     >
@@ -641,7 +641,7 @@ const Receipt = ({
                                         }
                                     </Form.Item>
                                 </div>
-                                <div className='col-md-4'>
+                                <div className='col-md-3'>
                                     <Form.Item
                                         label='Date'
                                     >
@@ -682,8 +682,8 @@ const Receipt = ({
                                         <tr>
                                             <th>Pcs</th>
                                             <th>Item</th>
-                                            <th>Price</th>
-                                            <th>Total</th>
+                                            <th className='text-end'>Price</th>
+                                            <th className='text-end'>Total</th>
                                         </tr>
                                     </thead>
                                     <tbody>
@@ -692,20 +692,18 @@ const Receipt = ({
                                                 <tr key={ value.id } >
                                                     <td> { value.add_or_less_stock } </td>
                                                     <td> { value.p_name } </td>
-                                                    <td> 
+                                                    <td className='text-end'> 
                                                         <CurrencyFormat 
                                                             value={ value.selling }
                                                             displayType={ 'text' } 
                                                             thousandSeparator={ true } 
-                                                            prefix={'₱'} 
                                                         />
                                                     </td>
-                                                    <td> 
+                                                    <td className='text-end'> 
                                                         <CurrencyFormat 
                                                             value={ value.purchase_amount }
                                                             displayType={ 'text' } 
                                                             thousandSeparator={ true } 
-                                                            prefix={'₱'} 
                                                         />
                                                     </td>
                                                 </tr>
@@ -715,12 +713,11 @@ const Receipt = ({
                                     <tfoot>
                                         <tr>
                                             <td colSpan={ 3 }></td>
-                                            <td>
+                                            <td className='text-end'>
                                             <CurrencyFormat 
                                                 value={ sum( map( dataReceipt, 'purchase_amount' ) ) }
                                                 displayType={ 'text' } 
                                                 thousandSeparator={ true } 
-                                                prefix={'₱'} 
                                             />
                                             </td>
                                         </tr>
