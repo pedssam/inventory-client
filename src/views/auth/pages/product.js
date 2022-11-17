@@ -30,6 +30,8 @@ const Product = ({
     baseUrl
 }) => {
 
+    const [ searchText, setSearchText ] = useState( '' )
+
     const replaceChar = ( char ) => {
         let string = !isString( char ) ? char.toString() : char
         if( string ) {
@@ -81,6 +83,17 @@ const Product = ({
         {
             title: 'Pcs',
             dataIndex: 'stock',
+            filteredValue: [ searchText ],
+            onFilter: ( value, record ) => {
+                return (
+                    String( record.stock ).toLowerCase().includes( value.toLowerCase() ) ||
+                    String( record.name ).toLowerCase().includes( value.toLowerCase() ) || 
+                    String( record.code ).toLowerCase().includes( value.toLowerCase() ) || 
+                    String( record.investment ).toLowerCase().includes( value.toLowerCase() ) || 
+                    String( record.selling ).toLowerCase().includes( value.toLowerCase() ) || 
+                    String( record.exp_return ).toLowerCase().includes( value.toLowerCase() )
+                )
+            },
             render: ( value , record ) => (
                 <div 
                     onDoubleClick={ e => renderDrawer ( record.name, record )  } 
@@ -826,6 +839,16 @@ const Product = ({
                 title={ 'Product' }
                 subtitle={ 'Manage list of Product' }
             >
+                <Input.Search
+                    placeholder='Search here...'
+                    className='mb-3'
+                    onSearch={ ( value ) => {
+                        setSearchText( value )
+                    }}
+                    onChange={ e => {
+                        setSearchText( e.target.value )
+                    }}
+                />
                 <Button
                     onClick = { e => { renderDrawer( 'Add new Product' ) } }
                 >
@@ -839,7 +862,6 @@ const Product = ({
                     dataSource={ dataSource }
                     rowKey='id'
                     exportable
-                    searchable 
                     exportableProps={ { 
                         fileName: 'Product List',
                         btnProps: {

@@ -6,7 +6,7 @@ import React, { Fragment, useEffect, useState } from 'react'
 import Wrapper from '../components/wrapper'
 
 // antd
-import { Button, Drawer, Form, Input , notification, Popconfirm  } from 'antd'
+import { Button, Drawer, Form, Input, notification, Popconfirm  } from 'antd'
 import { Table } from 'ant-table-extensions'
 
 // config
@@ -31,6 +31,9 @@ const Category = ({
         loadData()
     }, [ ] )
 
+    const [ dataSource, setDataSource ] = useState( [] )
+    const [ searchText, setSearchText ] = useState( '' )
+
     const [ drawer, setDrawer ] = useState({
         open: false,
         title: ''
@@ -47,6 +50,14 @@ const Category = ({
         {
             title: 'Name',
             dataIndex: 'name',
+            filteredValue: [ searchText ],
+            onFilter: ( value, record ) => {
+                return (
+                    String( record.name ).toLowerCase().includes( value.toLowerCase() ) ||
+                    String( record.supplier ).toLowerCase().includes( value.toLowerCase() ) || 
+                    String( record.code ).toLowerCase().includes( value.toLowerCase() ) 
+                )
+            },
             render: ( value , record ) => (
                 <div 
                     onDoubleClick={ e => renderDrawer ( record.name, record )  } 
@@ -79,7 +90,6 @@ const Category = ({
         },
     ]
 
-    const [ dataSource, setDataSource ] = useState( [] )
 
     const loadData = () => {
         
@@ -170,6 +180,7 @@ const Category = ({
           placement,
         })
     }
+
 
     return (
         <Fragment>
@@ -288,6 +299,16 @@ const Category = ({
                 title={ 'Category' }
                 subtitle={ 'Manage list of Category' }
             >
+                <Input.Search
+                    placeholder='Search here...'
+                    className='mb-3'
+                    onSearch={ ( value ) => {
+                        setSearchText( value )
+                    }}
+                    onChange={ e => {
+                        setSearchText( e.target.value )
+                    }}
+                />
                 <Button
                     onClick = { e => { renderDrawer( 'Add new Category' ) } }
                 >
@@ -301,7 +322,6 @@ const Category = ({
                     dataSource={ dataSource }
                     rowKey='id'
                     exportable
-                    searchable 
                     exportableProps={ { 
                         fileName: 'Category List',
                         btnProps: {

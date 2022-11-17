@@ -34,6 +34,8 @@ const Receipt = ({
     baseUrl
 }) => {
 
+    const [ searchText, setSearchText ] = useState( '' )
+
     const replaceChar = ( char ) => {
         let string = !isString( char ) ? char.toString() : char
         if( string ) {
@@ -69,6 +71,16 @@ const Receipt = ({
         {
             title: 'Ref No.',
             dataIndex: 'receipt_ref_num',
+            filteredValue: [ searchText ],
+            onFilter: ( value, record ) => {
+                return (
+                    String( record.receipt_ref_num ).toLowerCase().includes( value.toLowerCase() ) ||
+                    String( record.receipt_for ).toLowerCase().includes( value.toLowerCase() ) || 
+                    String( record.add_or_less_stock ).toLowerCase().includes( value.toLowerCase() ) || 
+                    String( record.p_name ).toLowerCase().includes( value.toLowerCase() ) || 
+                    String( record.date_time ).toLowerCase().includes( value.toLowerCase() )
+                )
+            },
             render: ( value , record ) => (
                 <div 
                     onDoubleClick={ e => renderDrawer ( record.receipt_ref_num, record )  } 
@@ -346,6 +358,7 @@ const Receipt = ({
 
            pdf.addImage( imgData, 'JPEG',  0, 0, pdfWidth, pdfHeight )
            pdf.save( 'Ado Toys Receipt.pdf' ) 
+        
        })
     }
 
@@ -536,6 +549,16 @@ const Receipt = ({
                     </div>
                 </Drawer>
                 <div className='pb-3'>
+                    <Input.Search
+                        placeholder='Search here...'
+                        className='mb-3'
+                        onSearch={ ( value ) => {
+                            setSearchText( value )
+                        }}
+                        onChange={ e => {
+                            setSearchText( e.target.value )
+                        }}
+                    />
                     <label 
                         className='text-muted text-xs'
                         style={{
@@ -573,7 +596,6 @@ const Receipt = ({
                     dataSource={ dataSource }
                     rowKey='id'
                     exportable
-                    searchable 
                     exportableProps={ { 
                         fileName: 'Receipt List',
                         btnProps: {
@@ -627,7 +649,7 @@ const Receipt = ({
                                                 style={{
                                                     width: '70%',
                                                     border: 'none',
-                                                    borderBottom: '1px solid #cccc'
+                                                    borderBottom: '1px solid #cccc',
                                                 }}
                                                 onBlur={ e => {
                                                     setReceiptName( { label: e.target.value , click: false } )
@@ -640,6 +662,10 @@ const Receipt = ({
                                                 onClick={ e => {
                                                     setReceiptName( { ...receiptName , click: true } )
                                                 } }
+                                                style={{
+                                                    background: '#3BCFB4',
+                                                    color: '#ffff'
+                                                }}
                                             >
                                                 { receiptName.label }
                                             </span>
