@@ -664,7 +664,8 @@ const Receipt = ({
                                                 } }
                                                 style={{
                                                     background: '#3BCFB4',
-                                                    color: '#ffff'
+                                                    color: '#ffff',
+                                                    fontWeight: '500'
                                                 }}
                                             >
                                                 { receiptName.label }
